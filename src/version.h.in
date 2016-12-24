@@ -1,0 +1,5 @@
+#define VERSION_FULL		"<full_version>"
+#define VERSION			"<version>"
+#define VERSION_ADDITION 	"<addition"
+#define VERSION_COMMIT		"<commit>"
+#define VERSION_DIRTY		"<dirty>"
