@@ -1,27 +1,57 @@
-# version
-version=`git describe`
-version_full=`git describe --dirty`
+#!/bin/bash.exe
+# get version
+version=`git describe --abbrev=6`
+version_full=`git describe --abbrev=6 --dirty`
 version_simple=`git describe --abbrev=0`
 
-echo "version:"
-echo $version
-echo $version_full
-echo $version_simple
-
-#element
+# get element
 tag=$version_simple
-id=`echo $version | sed -e "s/^${tag}-\([0-9]+\)-.*"`
-dirty=`echo $version_full | sed -e "s/.*\(dirty\)/\1/g"`
+addition=`echo $version | sed -e "s/^\${tag}-\([0-9]\{1,\}\)-.*$/\1/g"`
+id=`echo $version | sed -e "s/^\$tag-\$addition-\([0-9a-z]\{4,\}\)$/\1/g"`
+dirty=`echo $version_full | sed -e "s/^\$tag\(-\$addition-\$id\)\{,1\}-\(dirty\)/\2/g"`
 
-echo "element"
-echo $tag
-echo $id
-echo $dirty
+print_version()
+{
+	echo -e "\033[;33mversion\033[0m"
+	echo "version: $version"
+	echo "version_full: $version_full"
+	echo "version_simple: $version_simple"
+	echo "element: tag-addition-id-dirty"
+	echo $tag
+	echo $addition
+	echo $id
+	echo $dirty
+}
 
-# commit=`echo 12 | sed -e "s/-[0-9]+-[0-9a-z]\{8}$//g"`
-commit=`echo $version | sed -e "s/-[0-9]+/###/g"`
-if [ `echo $temp_version | grep -e "-dirty$" -c` -ne 0 ]; then
-	is_dirty=1
-	echo "is dirty"
-fi
+generate_version_header()
+{
+	echo "${0%/*}/header.h.in"
+	sed -e "s/<version>/$version/g" \
+		-e "s/<version_full>/$version_full/g" \
+		-e "s/<version_simple>/$version_simple/g" \
+		-e "s/<tag>/$tag/g" \
+		-e "s/<addition>/$addition/g" \
+		-e "s/<ID>/$id/g" \
+		-e "s/<dirty>/$dirty/g" \
+		"${0%/*}/version.h.in"\
+		> tmp;
+	cat tmp > version.h
+	rm tmp
+}
 
+
+while getopts "pc" arg
+do
+	case $arg in
+		p)
+			print_version
+			;;
+		c)
+			generate_version_header
+			;;
+		?)
+			echo "unknow argument"
+			exit 1
+			;;
+	esac
+done
